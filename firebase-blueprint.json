@@ -1,0 +1,72 @@
+{
+  "entities": {
+    "Appointment": {
+      "title": "Appointment",
+      "description": "A booking request from a customer",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Customer full name" },
+        "email": { "type": "string", "format": "email", "description": "Customer email address" },
+        "service": { "type": "string", "description": "Selected service" },
+        "date": { "type": "string", "description": "Preferred date" },
+        "time": { "type": "string", "description": "Preferred time" },
+        "status": { "type": "string", "enum": ["pending", "confirmed", "cancelled"], "description": "Booking status" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" }
+      },
+      "required": ["name", "email", "service", "date", "time", "status", "createdAt"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "A contact form submission",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Sender name" },
+        "email": { "type": "string", "format": "email", "description": "Sender email" },
+        "subject": { "type": "string", "description": "Message subject" },
+        "message": { "type": "string", "description": "Message body" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" }
+      },
+      "required": ["name", "email", "subject", "message", "createdAt"]
+    },
+    "Content": {
+      "title": "Content",
+      "description": "Editable website content",
+      "type": "object",
+      "properties": {
+        "heroTitle": { "type": "string", "description": "Main hero headline" },
+        "heroSubtitle": { "type": "string", "description": "Hero subtext" },
+        "aboutText": { "type": "string", "description": "About section text" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last updated timestamp" }
+      },
+      "required": ["heroTitle", "heroSubtitle", "aboutText"]
+    },
+    "User": {
+      "title": "User",
+      "description": "Admin user profile",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["admin", "user"] }
+      },
+      "required": ["email", "role"]
+    }
+  },
+  "firestore": {
+    "/appointments/{appointmentId}": {
+      "schema": { "$ref": "#/entities/Appointment" },
+      "description": "Stores all customer appointments"
+    },
+    "/messages/{messageId}": {
+      "schema": { "$ref": "#/entities/Message" },
+      "description": "Stores all contact form messages"
+    },
+    "/content/{contentId}": {
+      "schema": { "$ref": "#/entities/Content" },
+      "description": "Stores editable website content"
+    },
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Stores user roles and profiles"
+    }
+  }
+}
