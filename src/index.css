@@ -1,4 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-primary-50: #f0efff;
+  --color-primary-100: #e3e1ff;
+  --color-primary-200: #cbc7ff;
+  --color-primary-300: #a8a0ff;
+  --color-primary-400: #8376ff;
+  --color-primary-500: #6c63ff;
+  --color-primary-600: #5548eb;
+  --color-primary-700: #4638c4;
+  --color-primary-800: #392e9e;
+  --color-primary-900: #31297e;
+  --color-primary-950: #1d184b;
+
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-heading: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+}
 
 html {
   scroll-behavior: smooth;

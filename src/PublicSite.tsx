@@ -6,10 +6,12 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { collection, addDoc, serverTimestamp, doc, onSnapshot } from 'firebase/firestore';
-import { db } from './firebase';
+import { signInWithPopup, signOut } from 'firebase/auth';
+import { db, auth, googleProvider } from './firebase';
+import { ThemeToggle } from './components/ThemeToggle';
 
 // --- NAVBAR SECTION ---
-const Navbar = () => {
+const Navbar = ({ user }: { user: any }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -23,6 +25,7 @@ const Navbar = () => {
     { name: 'Home', href: 'home' },
     { name: 'About', href: 'about' },
     { name: 'Services', href: 'services' },
+    { name: 'Pricing', href: 'pricing' },
     { name: 'Book Now', href: 'booking' },
     { name: 'Contact', href: 'contact' },
   ];
@@ -35,12 +38,30 @@ const Navbar = () => {
     }
   };
 
+  const handleLogin = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (error) {
+      console.error("Error signing in:", error);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
+
+  const dashboardLink = user?.email === 'm.reha2006@gmail.com' ? '/secure-portal' : '/client-portal';
+
   return (
-    <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-md shadow-sm py-4' : 'bg-transparent py-6'}`}>
+    <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-sm py-4' : 'bg-transparent py-6'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
           <div className="flex-shrink-0 cursor-pointer" onClick={() => scrollTo('home')}>
-            <span className="text-2xl font-bold text-slate-900 tracking-tight">Almaris<span className="text-indigo-600">.</span></span>
+            <span className="text-2xl font-heading font-bold text-slate-900 dark:text-white tracking-tight">Almaris<span className="text-primary-600 dark:text-primary-400">.</span></span>
           </div>
           
           {/* Desktop Menu */}
@@ -49,16 +70,42 @@ const Navbar = () => {
               <button 
                 key={link.name} 
                 onClick={() => scrollTo(link.href)}
-                className={`text-sm font-medium transition-colors ${link.name === 'Book Now' ? 'bg-indigo-600 text-white px-5 py-2.5 rounded-full hover:bg-indigo-700 shadow-sm' : 'text-slate-600 hover:text-indigo-600'}`}
+                className={`text-sm font-heading font-medium transition-colors ${link.name === 'Book Now' ? 'bg-primary-600 text-white px-5 py-2.5 rounded-full hover:bg-primary-700 shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400'}`}
               >
                 {link.name}
               </button>
             ))}
+            <ThemeToggle />
+            
+            {user ? (
+              <div className="flex items-center space-x-4 ml-4 pl-4 border-l border-slate-200 dark:border-slate-700">
+                <Link to={dashboardLink} className="text-sm font-heading font-medium text-slate-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400">
+                  Dashboard
+                </Link>
+                <button onClick={handleLogout} className="text-sm font-heading font-medium text-slate-600 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400">
+                  Sign Out
+                </button>
+                {user.photoURL ? (
+                  <img src={user.photoURL} alt="Profile" className="w-8 h-8 rounded-full border border-slate-200 dark:border-slate-700" referrerPolicy="no-referrer" />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/50 flex items-center justify-center text-primary-700 dark:text-primary-300 font-bold text-sm">
+                    {user.email?.charAt(0).toUpperCase()}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="ml-4 pl-4 border-l border-slate-200 dark:border-slate-700">
+                <button onClick={handleLogin} className="text-sm font-heading font-medium text-slate-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400">
+                  Log In
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="md:hidden flex items-center">
-            <button onClick={() => setIsOpen(!isOpen)} className="text-slate-600 hover:text-slate-900">
+          <div className="md:hidden flex items-center space-x-4">
+            <ThemeToggle />
+            <button onClick={() => setIsOpen(!isOpen)} className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
@@ -67,17 +114,56 @@ const Navbar = () => {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="md:hidden absolute top-full left-0 w-full bg-white shadow-lg border-t border-slate-100">
+        <div className="md:hidden absolute top-full left-0 w-full bg-white dark:bg-slate-900 shadow-lg border-t border-slate-100 dark:border-slate-800">
           <div className="px-4 pt-2 pb-6 space-y-2">
             {navLinks.map((link) => (
               <button
                 key={link.name}
                 onClick={() => scrollTo(link.href)}
-                className="block w-full text-left px-3 py-3 text-base font-medium text-slate-700 hover:text-indigo-600 hover:bg-slate-50 rounded-lg"
+                className="block w-full text-left px-3 py-3 text-base font-heading font-medium text-slate-700 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg"
               >
                 {link.name}
               </button>
             ))}
+            
+            <div className="border-t border-slate-100 dark:border-slate-800 mt-4 pt-4">
+              {user ? (
+                <>
+                  <div className="flex items-center px-3 py-3 mb-2">
+                    {user.photoURL ? (
+                      <img src={user.photoURL} alt="Profile" className="w-8 h-8 rounded-full mr-3" referrerPolicy="no-referrer" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/50 flex items-center justify-center text-primary-700 dark:text-primary-300 font-bold mr-3">
+                        {user.email?.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <div className="overflow-hidden">
+                      <p className="text-sm font-heading font-medium text-slate-900 dark:text-white truncate">{user.displayName || 'User'}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
+                    </div>
+                  </div>
+                  <Link
+                    to={dashboardLink}
+                    className="block w-full text-left px-3 py-3 text-base font-heading font-medium text-slate-700 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg"
+                  >
+                    Dashboard
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="block w-full text-left px-3 py-3 text-base font-heading font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                  >
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={handleLogin}
+                  className="block w-full text-left px-3 py-3 text-base font-heading font-medium text-slate-700 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg"
+                >
+                  Log In
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -88,13 +174,13 @@ const Navbar = () => {
 // --- HERO SECTION ---
 const Hero = ({ title, subtitle }: { title: string, subtitle: string }) => {
   return (
-    <section id="home" className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-slate-50">
+    <section id="home" className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-slate-50 dark:bg-slate-900 transition-colors">
       <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-slate-50/50" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary-50/50 to-slate-50/50 dark:from-primary-950/30 dark:to-slate-900/50" />
         <img 
           src="https://picsum.photos/seed/workspace/1920/1080?blur=2" 
           alt="Background" 
-          className="w-full h-full object-cover opacity-10"
+          className="w-full h-full object-cover opacity-10 dark:opacity-5"
           referrerPolicy="no-referrer"
         />
       </div>
@@ -107,26 +193,26 @@ const Hero = ({ title, subtitle }: { title: string, subtitle: string }) => {
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            <span className="inline-block py-1 px-3 rounded-full bg-indigo-100 text-indigo-700 text-sm font-semibold tracking-wide mb-6">
+            <span className="inline-block py-1 px-3 rounded-full bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300 text-sm font-heading font-semibold tracking-wide mb-6">
               Premium Services
             </span>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight mb-8 leading-tight">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-heading font-extrabold text-slate-900 dark:text-white tracking-tight mb-8 leading-tight">
               {title}
             </h1>
-            <p className="text-lg sm:text-xl text-slate-600 mb-10 leading-relaxed">
+            <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-300 mb-10 leading-relaxed">
               {subtitle}
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <button 
                 onClick={() => document.getElementById('booking')?.scrollIntoView({ behavior: 'smooth' })}
-                className="inline-flex justify-center items-center px-8 py-4 border border-transparent text-base font-medium rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 transition-all hover:shadow-md"
+                className="inline-flex justify-center items-center px-8 py-4 border border-transparent text-base font-heading font-medium rounded-full shadow-sm text-white bg-primary-600 hover:bg-primary-700 transition-all hover:shadow-md"
               >
-                Book an Appointment
+                Book Free Consultation
                 <ArrowRight className="ml-2 -mr-1 h-5 w-5" />
               </button>
               <button 
                 onClick={() => document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' })}
-                className="inline-flex justify-center items-center px-8 py-4 border border-slate-300 text-base font-medium rounded-full text-slate-700 bg-white hover:bg-slate-50 transition-all"
+                className="inline-flex justify-center items-center px-8 py-4 border border-slate-300 dark:border-slate-700 text-base font-heading font-medium rounded-full text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
               >
                 Explore Services
               </button>
@@ -141,7 +227,7 @@ const Hero = ({ title, subtitle }: { title: string, subtitle: string }) => {
 // --- ABOUT SECTION ---
 const About = ({ text }: { text: string }) => {
   return (
-    <section id="about" className="py-20 lg:py-32 bg-white">
+    <section id="about" className="py-20 lg:py-32 bg-white dark:bg-slate-950 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="lg:grid lg:grid-cols-2 lg:gap-16 items-center">
           <motion.div 
@@ -151,21 +237,21 @@ const About = ({ text }: { text: string }) => {
             transition={{ duration: 0.6 }}
             className="mb-12 lg:mb-0"
           >
-            <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight sm:text-4xl mb-6">
+            <h2 className="text-3xl font-heading font-extrabold text-slate-900 dark:text-white tracking-tight sm:text-4xl mb-6">
               Dedicated to your success since 2010.
             </h2>
-            <div className="text-lg text-slate-600 mb-8 leading-relaxed whitespace-pre-wrap">
+            <div className="text-lg text-slate-600 dark:text-slate-300 mb-8 leading-relaxed whitespace-pre-wrap">
               {text}
             </div>
             
             <div className="grid grid-cols-2 gap-6">
-              <div className="border-l-4 border-indigo-600 pl-4">
-                <p className="text-3xl font-bold text-slate-900">15+</p>
-                <p className="text-sm text-slate-500 font-medium uppercase tracking-wide">Years Experience</p>
+              <div className="border-l-4 border-primary-600 pl-4">
+                <p className="text-3xl font-heading font-bold text-slate-900 dark:text-white">15+</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400 font-heading font-medium uppercase tracking-wide">Years Experience</p>
               </div>
-              <div className="border-l-4 border-indigo-600 pl-4">
-                <p className="text-3xl font-bold text-slate-900">2.5k</p>
-                <p className="text-sm text-slate-500 font-medium uppercase tracking-wide">Happy Clients</p>
+              <div className="border-l-4 border-primary-600 pl-4">
+                <p className="text-3xl font-heading font-bold text-slate-900 dark:text-white">2.5k</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400 font-heading font-medium uppercase tracking-wide">Happy Clients</p>
               </div>
             </div>
           </motion.div>
@@ -185,14 +271,14 @@ const About = ({ text }: { text: string }) => {
                 referrerPolicy="no-referrer"
               />
             </div>
-            <div className="absolute -bottom-6 -left-6 bg-white p-6 rounded-xl shadow-lg border border-slate-100 hidden md:block">
+            <div className="absolute -bottom-6 -left-6 bg-white dark:bg-slate-800 p-6 rounded-xl shadow-lg border border-slate-100 dark:border-slate-700 hidden md:block">
               <div className="flex items-center gap-4">
-                <div className="bg-indigo-100 p-3 rounded-full text-indigo-600">
+                <div className="bg-primary-100 dark:bg-primary-900/50 p-3 rounded-full text-primary-600 dark:text-primary-400">
                   <Star fill="currentColor" size={24} />
                 </div>
                 <div>
-                  <p className="text-sm text-slate-500 font-medium">Average Rating</p>
-                  <p className="text-xl font-bold text-slate-900">4.9/5.0</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 font-heading font-medium">Average Rating</p>
+                  <p className="text-xl font-heading font-bold text-slate-900 dark:text-white">4.9/5.0</p>
                 </div>
               </div>
             </div>
@@ -208,32 +294,32 @@ const Services = () => {
   const services = [
     {
       title: 'Strategic Consulting',
-      description: 'Comprehensive business analysis and strategic planning to accelerate your growth and market presence.',
-      icon: <Shield className="h-6 w-6 text-indigo-600" />,
+      description: 'We analyze your business and create growth strategies.',
+      icon: <Shield className="h-6 w-6 text-primary-600" />,
       price: 'From $199'
     },
     {
       title: 'Technical Implementation',
-      description: 'Seamless integration of modern technologies and software solutions tailored to your operational needs.',
-      icon: <Zap className="h-6 w-6 text-indigo-600" />,
+      description: 'We build and integrate modern digital solutions.',
+      icon: <Zap className="h-6 w-6 text-primary-600" />,
       price: 'From $299'
     },
     {
       title: 'Performance Optimization',
-      description: 'Analyze and optimize your existing workflows to maximize efficiency and reduce operational costs.',
-      icon: <Star className="h-6 w-6 text-indigo-600" />,
+      description: 'We improve your systems for better efficiency and results.',
+      icon: <Star className="h-6 w-6 text-primary-600" />,
       price: 'From $149'
     }
   ];
 
   return (
-    <section id="services" className="py-20 lg:py-32 bg-slate-50">
+    <section id="services" className="py-20 lg:py-32 bg-slate-50 dark:bg-slate-900 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight sm:text-4xl mb-4">
+          <h2 className="text-3xl font-heading font-extrabold text-slate-900 dark:text-white tracking-tight sm:text-4xl mb-4">
             Our Services
           </h2>
-          <p className="text-lg text-slate-600">
+          <p className="text-lg text-slate-600 dark:text-slate-300">
             Tailored solutions designed to meet the specific demands of your business. Choose the service that fits your goals.
           </p>
         </div>
@@ -246,24 +332,108 @@ const Services = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
+              className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-8 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
             >
-              <div className="w-14 h-14 bg-indigo-50 rounded-xl flex items-center justify-center mb-6 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                {React.cloneElement(service.icon, { className: 'h-7 w-7 transition-colors group-hover:text-white' })}
+              <div className="w-14 h-14 bg-primary-50 dark:bg-primary-900/50 rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary-600 group-hover:text-white transition-colors">
+                {React.cloneElement(service.icon, { className: 'h-7 w-7 transition-colors group-hover:text-white dark:text-primary-400' })}
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">{service.title}</h3>
-              <p className="text-slate-600 mb-6 leading-relaxed">
+              <h3 className="text-xl font-heading font-bold text-slate-900 dark:text-white mb-3">{service.title}</h3>
+              <p className="text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
                 {service.description}
               </p>
-              <div className="flex items-center justify-between mt-auto pt-6 border-t border-slate-100">
-                <span className="text-lg font-semibold text-slate-900">{service.price}</span>
+              <div className="flex items-center justify-between mt-auto pt-6 border-t border-slate-100 dark:border-slate-700">
+                <span className="text-lg font-heading font-semibold text-slate-900 dark:text-white">{service.price}</span>
                 <button 
                   onClick={() => document.getElementById('booking')?.scrollIntoView({ behavior: 'smooth' })}
-                  className="text-indigo-600 font-medium flex items-center hover:text-indigo-800 transition-colors"
+                  className="text-primary-600 dark:text-primary-400 font-heading font-medium flex items-center hover:text-primary-800 dark:hover:text-primary-300 transition-colors"
                 >
                   Book <ChevronRight size={16} className="ml-1" />
                 </button>
               </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// --- PRICING SECTION ---
+const Pricing = () => {
+  const plans = [
+    {
+      name: 'Basic Plan',
+      price: '$99',
+      features: [
+        '1 Consultation Session',
+        'Basic Strategy Plan'
+      ]
+    },
+    {
+      name: 'Pro Plan',
+      price: '$299',
+      features: [
+        '3 Sessions',
+        'Full Strategy + Implementation'
+      ],
+      popular: true
+    },
+    {
+      name: 'Enterprise',
+      price: '$599',
+      features: [
+        'Unlimited Sessions'
+      ]
+    }
+  ];
+
+  return (
+    <section id="pricing" className="py-20 lg:py-32 bg-white dark:bg-slate-950 transition-colors">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <h2 className="text-3xl font-heading font-extrabold text-slate-900 dark:text-white tracking-tight sm:text-4xl mb-4">
+            Simple, Transparent Pricing
+          </h2>
+          <p className="text-lg text-slate-600 dark:text-slate-300">
+            Choose the plan that best fits your business needs.
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          {plans.map((plan, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              className={`relative bg-white dark:bg-slate-900 rounded-2xl shadow-sm border ${plan.popular ? 'border-primary-500 shadow-primary-500/10 shadow-xl' : 'border-slate-200 dark:border-slate-800'} p-8 flex flex-col`}
+            >
+              {plan.popular && (
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                  <span className="bg-primary-500 text-white text-xs font-bold uppercase tracking-wider py-1 px-3 rounded-full">
+                    Most Popular
+                  </span>
+                </div>
+              )}
+              <h3 className="text-xl font-heading font-bold text-slate-900 dark:text-white mb-4">{plan.name}</h3>
+              <div className="mb-6">
+                <span className="text-4xl font-heading font-extrabold text-slate-900 dark:text-white">{plan.price}</span>
+              </div>
+              <ul className="space-y-4 mb-8 flex-1">
+                {plan.features.map((feature, i) => (
+                  <li key={i} className="flex items-start">
+                    <CheckCircle className="h-5 w-5 text-primary-500 mr-3 shrink-0 mt-0.5" />
+                    <span className="text-slate-600 dark:text-slate-300">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+              <button 
+                onClick={() => document.getElementById('booking')?.scrollIntoView({ behavior: 'smooth' })}
+                className={`w-full py-3 px-6 rounded-lg font-heading font-semibold transition-colors ${plan.popular ? 'bg-primary-600 text-white hover:bg-primary-700' : 'bg-primary-50 text-primary-700 hover:bg-primary-100 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700'}`}
+              >
+                Get Started
+              </button>
             </motion.div>
           ))}
         </div>
@@ -304,47 +474,47 @@ const Booking = () => {
   };
 
   return (
-    <section id="booking" className="py-20 lg:py-32 bg-white">
+    <section id="booking" className="py-20 lg:py-32 bg-white dark:bg-slate-950 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-indigo-600 rounded-3xl overflow-hidden shadow-2xl lg:flex">
+        <div className="bg-primary-600 dark:bg-primary-900 rounded-3xl overflow-hidden shadow-2xl lg:flex">
           <div className="lg:w-1/2 p-10 lg:p-16 text-white flex flex-col justify-center">
-            <h2 className="text-3xl sm:text-4xl font-extrabold mb-6">Ready to get started?</h2>
-            <p className="text-indigo-100 text-lg mb-8 leading-relaxed">
+            <h2 className="text-3xl sm:text-4xl font-heading font-extrabold mb-6">Ready to get started?</h2>
+            <p className="text-primary-100 text-lg mb-8 leading-relaxed">
               Schedule your consultation today. Fill out the form with your preferred date and time, and our team will confirm your appointment shortly.
             </p>
             <ul className="space-y-4">
-              <li className="flex items-center text-indigo-100">
-                <CheckCircle className="h-6 w-6 mr-3 text-indigo-300" />
+              <li className="flex items-center text-primary-100">
+                <CheckCircle className="h-6 w-6 mr-3 text-primary-300" />
                 No upfront commitment required
               </li>
-              <li className="flex items-center text-indigo-100">
-                <CheckCircle className="h-6 w-6 mr-3 text-indigo-300" />
+              <li className="flex items-center text-primary-100">
+                <CheckCircle className="h-6 w-6 mr-3 text-primary-300" />
                 Free 30-minute initial consultation
               </li>
-              <li className="flex items-center text-indigo-100">
-                <CheckCircle className="h-6 w-6 mr-3 text-indigo-300" />
+              <li className="flex items-center text-primary-100">
+                <CheckCircle className="h-6 w-6 mr-3 text-primary-300" />
                 Expert advice tailored to you
               </li>
             </ul>
           </div>
           
-          <div className="lg:w-1/2 bg-slate-50 p-10 lg:p-16">
+          <div className="lg:w-1/2 bg-slate-50 dark:bg-slate-900 p-10 lg:p-16">
             {isSubmitted ? (
               <motion.div 
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="h-full flex flex-col items-center justify-center text-center py-12"
               >
-                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
-                  <CheckCircle className="h-10 w-10 text-green-600" />
+                <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-6">
+                  <CheckCircle className="h-10 w-10 text-green-600 dark:text-green-400" />
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-2">Booking Confirmed!</h3>
-                <p className="text-slate-600">
+                <h3 className="text-2xl font-heading font-bold text-slate-900 dark:text-white mb-2">Booking Confirmed!</h3>
+                <p className="text-slate-600 dark:text-slate-300">
                   Thank you for scheduling with us. We've sent a confirmation email with the details of your appointment.
                 </p>
                 <button 
                   onClick={() => setIsSubmitted(false)}
-                  className="mt-8 text-indigo-600 font-medium hover:text-indigo-800"
+                  className="mt-8 text-primary-600 dark:text-primary-400 font-heading font-medium hover:text-primary-800 dark:hover:text-primary-300"
                 >
                   Book another appointment
                 </button>
@@ -353,7 +523,7 @@ const Booking = () => {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-2">Full Name</label>
+                    <label htmlFor="name" className="block text-sm font-heading font-medium text-slate-700 dark:text-slate-300 mb-2">Full Name</label>
                     <input
                       type="text"
                       id="name"
@@ -361,12 +531,12 @@ const Booking = () => {
                       required
                       value={formData.name}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 transition-colors bg-white"
+                      className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-colors bg-white dark:bg-slate-800 dark:text-white"
                       placeholder="John Doe"
                     />
                   </div>
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">Email Address</label>
+                    <label htmlFor="email" className="block text-sm font-heading font-medium text-slate-700 dark:text-slate-300 mb-2">Email Address</label>
                     <input
                       type="email"
                       id="email"
@@ -374,21 +544,21 @@ const Booking = () => {
                       required
                       value={formData.email}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 transition-colors bg-white"
+                      className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-colors bg-white dark:bg-slate-800 dark:text-white"
                       placeholder="john@example.com"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label htmlFor="service" className="block text-sm font-medium text-slate-700 mb-2">Select Service</label>
+                  <label htmlFor="service" className="block text-sm font-heading font-medium text-slate-700 dark:text-slate-300 mb-2">Select Service</label>
                   <select
                     id="service"
                     name="service"
                     required
                     value={formData.service}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 transition-colors bg-white"
+                    className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-colors bg-white dark:bg-slate-800 dark:text-white"
                   >
                     <option value="" disabled>Choose a service...</option>
                     <option value="consulting">Strategic Consulting</option>
@@ -399,7 +569,7 @@ const Booking = () => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div>
-                    <label htmlFor="date" className="block text-sm font-medium text-slate-700 mb-2">Preferred Date</label>
+                    <label htmlFor="date" className="block text-sm font-heading font-medium text-slate-700 dark:text-slate-300 mb-2">Preferred Date</label>
                     <div className="relative">
                       <input
                         type="date"
@@ -408,12 +578,12 @@ const Booking = () => {
                         required
                         value={formData.date}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 transition-colors bg-white"
+                        className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-colors bg-white dark:bg-slate-800 dark:text-white"
                       />
                     </div>
                   </div>
                   <div>
-                    <label htmlFor="time" className="block text-sm font-medium text-slate-700 mb-2">Preferred Time</label>
+                    <label htmlFor="time" className="block text-sm font-heading font-medium text-slate-700 dark:text-slate-300 mb-2">Preferred Time</label>
                     <div className="relative">
                       <select
                         id="time"
@@ -421,7 +591,7 @@ const Booking = () => {
                         required
                         value={formData.time}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 transition-colors bg-white"
+                        className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-colors bg-white dark:bg-slate-800 dark:text-white"
                       >
                         <option value="" disabled>Select a time...</option>
                         <option value="09:00">09:00 AM</option>
@@ -438,7 +608,7 @@ const Booking = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-4 px-6 border border-transparent rounded-lg shadow-sm text-base font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600 transition-colors mt-4 disabled:opacity-70"
+                  className="w-full py-4 px-6 border border-transparent rounded-lg shadow-sm text-base font-heading font-bold text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-600 transition-colors mt-4 disabled:opacity-70"
                 >
                   {isSubmitting ? 'Submitting...' : 'Confirm Booking'}
                 </button>
@@ -481,13 +651,13 @@ const Contact = () => {
   };
 
   return (
-    <section id="contact" className="py-20 lg:py-32 bg-slate-50">
+    <section id="contact" className="py-20 lg:py-32 bg-slate-50 dark:bg-slate-900 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight sm:text-4xl mb-4">
+          <h2 className="text-3xl font-heading font-extrabold text-slate-900 dark:text-white tracking-tight sm:text-4xl mb-4">
             Get in Touch
           </h2>
-          <p className="text-lg text-slate-600">
+          <p className="text-lg text-slate-600 dark:text-slate-300">
             Have a question or need more information? Reach out to us directly.
           </p>
         </div>
@@ -496,13 +666,13 @@ const Contact = () => {
           <div className="lg:col-span-1 space-y-8">
             <div className="flex items-start">
               <div className="flex-shrink-0">
-                <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-indigo-100 text-indigo-600">
+                <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-primary-100 dark:bg-primary-900/50 text-primary-600 dark:text-primary-400">
                   <MapPin className="h-6 w-6" />
                 </div>
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-medium text-slate-900">Office Location</h3>
-                <p className="mt-2 text-base text-slate-600">
+                <h3 className="text-lg font-heading font-medium text-slate-900 dark:text-white">Office Location</h3>
+                <p className="mt-2 text-base text-slate-600 dark:text-slate-300">
                   123 Business Avenue<br />
                   Suite 400<br />
                   San Francisco, CA 94107
@@ -512,13 +682,13 @@ const Contact = () => {
 
             <div className="flex items-start">
               <div className="flex-shrink-0">
-                <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-indigo-100 text-indigo-600">
+                <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-primary-100 dark:bg-primary-900/50 text-primary-600 dark:text-primary-400">
                   <Phone className="h-6 w-6" />
                 </div>
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-medium text-slate-900">Phone</h3>
-                <p className="mt-2 text-base text-slate-600">
+                <h3 className="text-lg font-heading font-medium text-slate-900 dark:text-white">Phone</h3>
+                <p className="mt-2 text-base text-slate-600 dark:text-slate-300">
                   +1 (555) 123-4567<br />
                   Mon-Fri 9am to 6pm PST
                 </p>
@@ -527,13 +697,13 @@ const Contact = () => {
 
             <div className="flex items-start">
               <div className="flex-shrink-0">
-                <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-indigo-100 text-indigo-600">
+                <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-primary-100 dark:bg-primary-900/50 text-primary-600 dark:text-primary-400">
                   <Mail className="h-6 w-6" />
                 </div>
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-medium text-slate-900">Email</h3>
-                <p className="mt-2 text-base text-slate-600">
+                <h3 className="text-lg font-heading font-medium text-slate-900 dark:text-white">Email</h3>
+                <p className="mt-2 text-base text-slate-600 dark:text-slate-300">
                   hello@almaris.example.com<br />
                   support@almaris.example.com
                 </p>
@@ -543,34 +713,34 @@ const Contact = () => {
 
           <div className="lg:col-span-2">
             {isSubmitted ? (
-               <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 flex flex-col items-center justify-center text-center h-full">
-                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                   <CheckCircle className="h-8 w-8 text-green-600" />
+               <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-8 flex flex-col items-center justify-center text-center h-full">
+                 <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-4">
+                   <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
                  </div>
-                 <h3 className="text-xl font-bold text-slate-900 mb-2">Message Sent!</h3>
-                 <p className="text-slate-600">We'll get back to you as soon as possible.</p>
+                 <h3 className="text-xl font-heading font-bold text-slate-900 dark:text-white mb-2">Message Sent!</h3>
+                 <p className="text-slate-600 dark:text-slate-300">We'll get back to you as soon as possible.</p>
                </div>
             ) : (
-              <form className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8" onSubmit={handleSubmit}>
+              <form className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-8" onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
                   <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-2">Name</label>
-                    <input type="text" id="name" required value={formData.name} onChange={handleChange} className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600" placeholder="Your name" />
+                    <label htmlFor="name" className="block text-sm font-heading font-medium text-slate-700 dark:text-slate-300 mb-2">Name</label>
+                    <input type="text" id="name" required value={formData.name} onChange={handleChange} className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-primary-600 focus:border-primary-600 bg-white dark:bg-slate-900 dark:text-white" placeholder="Your name" />
                   </div>
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">Email</label>
-                    <input type="email" id="email" required value={formData.email} onChange={handleChange} className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600" placeholder="your@email.com" />
+                    <label htmlFor="email" className="block text-sm font-heading font-medium text-slate-700 dark:text-slate-300 mb-2">Email</label>
+                    <input type="email" id="email" required value={formData.email} onChange={handleChange} className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-primary-600 focus:border-primary-600 bg-white dark:bg-slate-900 dark:text-white" placeholder="your@email.com" />
                   </div>
                 </div>
                 <div className="mb-6">
-                  <label htmlFor="subject" className="block text-sm font-medium text-slate-700 mb-2">Subject</label>
-                  <input type="text" id="subject" required value={formData.subject} onChange={handleChange} className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600" placeholder="How can we help?" />
+                  <label htmlFor="subject" className="block text-sm font-heading font-medium text-slate-700 dark:text-slate-300 mb-2">Subject</label>
+                  <input type="text" id="subject" required value={formData.subject} onChange={handleChange} className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-primary-600 focus:border-primary-600 bg-white dark:bg-slate-900 dark:text-white" placeholder="How can we help?" />
                 </div>
                 <div className="mb-6">
-                  <label htmlFor="message" className="block text-sm font-medium text-slate-700 mb-2">Message</label>
-                  <textarea id="message" required value={formData.message} onChange={handleChange} rows={4} className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600" placeholder="Write your message here..."></textarea>
+                  <label htmlFor="message" className="block text-sm font-heading font-medium text-slate-700 dark:text-slate-300 mb-2">Message</label>
+                  <textarea id="message" required value={formData.message} onChange={handleChange} rows={4} className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-primary-600 focus:border-primary-600 bg-white dark:bg-slate-900 dark:text-white" placeholder="Write your message here..."></textarea>
                 </div>
-                <button type="submit" disabled={isSubmitting} className="px-6 py-3 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-slate-900 hover:bg-slate-800 transition-colors disabled:opacity-70">
+                <button type="submit" disabled={isSubmitting} className="px-6 py-3 border border-transparent rounded-lg shadow-sm text-base font-heading font-medium text-white bg-slate-900 dark:bg-primary-600 hover:bg-slate-800 dark:hover:bg-primary-700 transition-colors disabled:opacity-70">
                   {isSubmitting ? 'Sending...' : 'Send Message'}
                 </button>
               </form>
@@ -589,13 +759,13 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div className="col-span-1 md:col-span-2">
-            <span className="text-2xl font-bold text-white tracking-tight mb-4 block">Almaris<span className="text-indigo-500">.</span></span>
+            <span className="text-2xl font-heading font-bold text-white tracking-tight mb-4 block">Almaris<span className="text-primary-500">.</span></span>
             <p className="text-slate-400 max-w-sm">
               Professional service solutions designed to help your business grow and thrive in a competitive landscape.
             </p>
           </div>
           <div>
-            <h4 className="text-white font-semibold mb-4">Quick Links</h4>
+            <h4 className="text-white font-heading font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-2">
               <li><button onClick={() => document.getElementById('home')?.scrollIntoView({ behavior: 'smooth' })} className="text-slate-400 hover:text-white transition-colors">Home</button></li>
               <li><button onClick={() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' })} className="text-slate-400 hover:text-white transition-colors">About Us</button></li>
@@ -604,7 +774,7 @@ const Footer = () => {
             </ul>
           </div>
           <div>
-            <h4 className="text-white font-semibold mb-4">Legal</h4>
+            <h4 className="text-white font-heading font-semibold mb-4">Legal</h4>
             <ul className="space-y-2">
               <li><a href="#" className="text-slate-400 hover:text-white transition-colors">Privacy Policy</a></li>
               <li><a href="#" className="text-slate-400 hover:text-white transition-colors">Terms of Service</a></li>
@@ -638,10 +808,10 @@ const Footer = () => {
 };
 
 // --- MAIN COMPONENT ---
-export default function PublicSite() {
+export default function PublicSite({ user }: { user?: any }) {
   const [content, setContent] = useState({
-    heroTitle: 'Elevate your business with professional solutions.',
-    heroSubtitle: 'We provide top-tier consulting and service solutions tailored to your unique needs. Book an appointment today and let\'s build something great together.',
+    heroTitle: 'Elevate Your Business with Smart Solutions',
+    heroSubtitle: 'We provide expert consulting and technical solutions to help your business grow faster and smarter.',
     aboutText: 'At Almaris, we believe in delivering exceptional quality and measurable results. Our team of industry experts works closely with you to understand your challenges and implement strategies that drive growth.\n\nWhether you need strategic consulting, technical implementation, or ongoing support, we have the expertise to help you navigate the complex business landscape.'
   });
 
@@ -659,12 +829,13 @@ export default function PublicSite() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-indigo-100 selection:text-indigo-900">
-      <Navbar />
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-50 selection:bg-primary-100 dark:selection:bg-primary-900/50 selection:text-primary-900 dark:selection:text-primary-100 transition-colors">
+      <Navbar user={user} />
       <main>
         <Hero title={content.heroTitle} subtitle={content.heroSubtitle} />
         <About text={content.aboutText} />
         <Services />
+        <Pricing />
         <Booking />
         <Contact />
       </main>

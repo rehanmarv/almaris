@@ -6,7 +6,7 @@ import { db, auth, googleProvider } from './firebase';
 import { signInWithPopup } from 'firebase/auth';
 import { 
   LayoutDashboard, Calendar, MessageSquare, Settings, 
-  LogOut, CheckCircle, XCircle, Clock, Trash2, FileText
+  LogOut, CheckCircle, XCircle, Clock, Trash2, FileText, Loader2
 } from 'lucide-react';
 
 export default function AdminDashboard({ user }: { user: any }) {
@@ -16,11 +16,11 @@ export default function AdminDashboard({ user }: { user: any }) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
         <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 max-w-md w-full text-center">
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">Admin Access</h2>
+          <h2 className="text-2xl font-heading font-bold text-slate-900 mb-2">Admin Access</h2>
           <p className="text-slate-600 mb-8">Please sign in to access the dashboard.</p>
           <button 
             onClick={() => signInWithPopup(auth, googleProvider)}
-            className="w-full py-3 px-4 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+            className="w-full py-3 px-4 bg-primary-600 text-white rounded-lg font-heading font-medium hover:bg-primary-700 transition-colors"
           >
             Sign in with Google
           </button>
@@ -39,14 +39,14 @@ export default function AdminDashboard({ user }: { user: any }) {
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <XCircle className="h-8 w-8 text-red-600" />
           </div>
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">Access Denied</h2>
+          <h2 className="text-2xl font-heading font-bold text-slate-900 mb-2">Access Denied</h2>
           <p className="text-slate-600 mb-6">
             Your account ({user.email}) does not have administrator privileges to view this dashboard.
           </p>
           <div className="flex flex-col space-y-3">
             <button 
               onClick={() => { signOut(auth); navigate('/'); }}
-              className="w-full py-3 px-4 bg-slate-900 text-white rounded-lg font-medium hover:bg-slate-800 transition-colors"
+              className="w-full py-3 px-4 bg-slate-900 text-white rounded-lg font-heading font-medium hover:bg-slate-800 transition-colors"
             >
               Sign Out & Return Home
             </button>
@@ -61,33 +61,33 @@ export default function AdminDashboard({ user }: { user: any }) {
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r border-slate-200 flex flex-col">
         <div className="p-6 border-b border-slate-200">
-          <span className="text-2xl font-bold text-slate-900 tracking-tight">Almaris<span className="text-indigo-600">.</span></span>
-          <span className="ml-2 text-xs font-semibold bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full">Admin</span>
+          <span className="text-2xl font-heading font-bold text-slate-900 tracking-tight">Almaris<span className="text-primary-600">.</span></span>
+          <span className="ml-2 text-xs font-heading font-semibold bg-primary-100 text-primary-700 px-2 py-1 rounded-full">Admin</span>
         </div>
         <nav className="flex-1 p-4 space-y-1">
-          <Link to="/secure-portal" className="flex items-center px-4 py-3 text-slate-700 hover:bg-slate-50 hover:text-indigo-600 rounded-lg font-medium transition-colors">
+          <Link to="/secure-portal" className="flex items-center px-4 py-3 text-slate-700 hover:bg-slate-50 hover:text-primary-600 rounded-lg font-heading font-medium transition-colors">
             <Calendar className="mr-3 h-5 w-5" /> Appointments
           </Link>
-          <Link to="/secure-portal/messages" className="flex items-center px-4 py-3 text-slate-700 hover:bg-slate-50 hover:text-indigo-600 rounded-lg font-medium transition-colors">
+          <Link to="/secure-portal/messages" className="flex items-center px-4 py-3 text-slate-700 hover:bg-slate-50 hover:text-primary-600 rounded-lg font-heading font-medium transition-colors">
             <MessageSquare className="mr-3 h-5 w-5" /> Messages
           </Link>
-          <Link to="/secure-portal/content" className="flex items-center px-4 py-3 text-slate-700 hover:bg-slate-50 hover:text-indigo-600 rounded-lg font-medium transition-colors">
+          <Link to="/secure-portal/content" className="flex items-center px-4 py-3 text-slate-700 hover:bg-slate-50 hover:text-primary-600 rounded-lg font-heading font-medium transition-colors">
             <FileText className="mr-3 h-5 w-5" /> Site Content
           </Link>
         </nav>
         <div className="p-4 border-t border-slate-200">
           <div className="flex items-center mb-4 px-4">
-            <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold mr-3">
+            <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold mr-3">
               {user.email?.charAt(0).toUpperCase()}
             </div>
             <div className="overflow-hidden">
-              <p className="text-sm font-medium text-slate-900 truncate">{user.displayName || 'Admin'}</p>
+              <p className="text-sm font-heading font-medium text-slate-900 truncate">{user.displayName || 'Admin'}</p>
               <p className="text-xs text-slate-500 truncate">{user.email}</p>
             </div>
           </div>
           <button 
             onClick={() => { signOut(auth); navigate('/'); }}
-            className="flex w-full items-center px-4 py-2 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg font-medium transition-colors"
+            className="flex w-full items-center px-4 py-2 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg font-heading font-medium transition-colors"
           >
             <LogOut className="mr-3 h-5 w-5" /> Sign Out
           </button>
@@ -140,20 +140,73 @@ function AppointmentsList() {
     }
   };
 
-  if (loading) return <div>Loading appointments...</div>;
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 text-primary-600 animate-spin mb-4" />
+        <p className="text-slate-500 font-heading font-medium">Loading appointments...</p>
+      </div>
+    );
+  }
+
+  const totalBookings = appointments.length;
+  const pendingBookings = appointments.filter(a => a.status === 'pending').length;
+  const approvedBookings = appointments.filter(a => a.status === 'confirmed').length;
+  const cancelledBookings = appointments.filter(a => a.status === 'cancelled').length;
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-slate-900 mb-6">Appointments</h1>
+      <h1 className="text-2xl font-heading font-bold text-slate-900 mb-6">Dashboard Overview</h1>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex items-center">
+          <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mr-4">
+            <LayoutDashboard className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="text-sm font-heading font-medium text-slate-500">Total Bookings</div>
+            <div className="text-2xl font-heading font-bold text-slate-900">{totalBookings}</div>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex items-center">
+          <div className="w-12 h-12 bg-yellow-50 text-yellow-600 rounded-full flex items-center justify-center mr-4">
+            <Clock className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="text-sm font-heading font-medium text-slate-500">Pending</div>
+            <div className="text-2xl font-heading font-bold text-slate-900">{pendingBookings}</div>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex items-center">
+          <div className="w-12 h-12 bg-green-50 text-green-600 rounded-full flex items-center justify-center mr-4">
+            <CheckCircle className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="text-sm font-heading font-medium text-slate-500">Approved</div>
+            <div className="text-2xl font-heading font-bold text-slate-900">{approvedBookings}</div>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex items-center">
+          <div className="w-12 h-12 bg-red-50 text-red-600 rounded-full flex items-center justify-center mr-4">
+            <XCircle className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="text-sm font-heading font-medium text-slate-500">Cancelled</div>
+            <div className="text-2xl font-heading font-bold text-slate-900">{cancelledBookings}</div>
+          </div>
+        </div>
+      </div>
+
+      <h2 className="text-xl font-heading font-bold text-slate-900 mb-4">Manage Bookings</h2>
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <table className="min-w-full divide-y divide-slate-200">
           <thead className="bg-slate-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Client</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Service</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Date & Time</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+              <th className="px-6 py-3 text-left text-xs font-heading font-medium text-slate-500 uppercase tracking-wider">Client</th>
+              <th className="px-6 py-3 text-left text-xs font-heading font-medium text-slate-500 uppercase tracking-wider">Service</th>
+              <th className="px-6 py-3 text-left text-xs font-heading font-medium text-slate-500 uppercase tracking-wider">Date & Time</th>
+              <th className="px-6 py-3 text-left text-xs font-heading font-medium text-slate-500 uppercase tracking-wider">Status</th>
+              <th className="px-6 py-3 text-right text-xs font-heading font-medium text-slate-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-slate-200">
@@ -164,7 +217,7 @@ function AppointmentsList() {
             ) : appointments.map((apt) => (
               <tr key={apt.id} className="hover:bg-slate-50">
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="font-medium text-slate-900">{apt.name}</div>
+                  <div className="font-heading font-medium text-slate-900">{apt.name}</div>
                   <div className="text-sm text-slate-500">{apt.email}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700 capitalize">
@@ -175,25 +228,21 @@ function AppointmentsList() {
                   <div className="flex items-center mt-1"><Clock className="w-4 h-4 mr-1 text-slate-400"/> {apt.time}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                    ${apt.status === 'confirmed' ? 'bg-green-100 text-green-800' : 
-                      apt.status === 'cancelled' ? 'bg-red-100 text-red-800' : 
-                      'bg-yellow-100 text-yellow-800'}`}>
-                    {apt.status}
-                  </span>
+                  <select
+                    value={apt.status}
+                    onChange={(e) => updateStatus(apt.id, e.target.value)}
+                    className={`text-xs font-heading font-semibold rounded-full px-3 py-1 border-0 cursor-pointer focus:ring-2 focus:ring-primary-500 outline-none
+                      ${apt.status === 'confirmed' ? 'bg-green-100 text-green-800' : 
+                        apt.status === 'cancelled' ? 'bg-red-100 text-red-800' : 
+                        'bg-yellow-100 text-yellow-800'}`}
+                  >
+                    <option value="pending" className="bg-white text-slate-900">Pending</option>
+                    <option value="confirmed" className="bg-white text-slate-900">Approved</option>
+                    <option value="cancelled" className="bg-white text-slate-900">Cancelled</option>
+                  </select>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  {apt.status === 'pending' && (
-                    <>
-                      <button onClick={() => updateStatus(apt.id, 'confirmed')} className="text-green-600 hover:text-green-900 mr-3" title="Confirm">
-                        <CheckCircle className="w-5 h-5" />
-                      </button>
-                      <button onClick={() => updateStatus(apt.id, 'cancelled')} className="text-red-600 hover:text-red-900 mr-3" title="Cancel">
-                        <XCircle className="w-5 h-5" />
-                      </button>
-                    </>
-                  )}
-                  <button onClick={() => deleteAppointment(apt.id)} className="text-slate-400 hover:text-red-600" title="Delete">
+                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-heading font-medium">
+                  <button onClick={() => deleteAppointment(apt.id)} className="text-slate-400 hover:text-red-600 transition-colors" title="Delete Booking">
                     <Trash2 className="w-5 h-5" />
                   </button>
                 </td>
@@ -232,11 +281,18 @@ function MessagesList() {
     }
   };
 
-  if (loading) return <div>Loading messages...</div>;
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 text-primary-600 animate-spin mb-4" />
+        <p className="text-slate-500 font-heading font-medium">Loading messages...</p>
+      </div>
+    );
+  }
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-slate-900 mb-6">Messages</h1>
+      <h1 className="text-2xl font-heading font-bold text-slate-900 mb-6">Messages</h1>
       <div className="grid gap-6">
         {messages.length === 0 ? (
           <div className="bg-white p-8 text-center rounded-xl border border-slate-200 text-slate-500">
@@ -250,9 +306,9 @@ function MessagesList() {
             >
               <Trash2 className="w-5 h-5" />
             </button>
-            <h3 className="text-lg font-bold text-slate-900 mb-1">{msg.subject}</h3>
+            <h3 className="text-lg font-heading font-bold text-slate-900 mb-1">{msg.subject}</h3>
             <div className="flex items-center text-sm text-slate-500 mb-4">
-              <span className="font-medium text-slate-700 mr-2">{msg.name}</span>
+              <span className="font-heading font-medium text-slate-700 mr-2">{msg.name}</span>
               &lt;{msg.email}&gt;
               <span className="mx-2">•</span>
               {msg.createdAt?.toDate ? msg.createdAt.toDate().toLocaleString() : new Date(msg.createdAt).toLocaleString()}
@@ -267,8 +323,8 @@ function MessagesList() {
 
 function ContentEditor() {
   const [formData, setFormData] = useState({
-    heroTitle: 'Elevate your business with professional solutions.',
-    heroSubtitle: 'We provide top-tier consulting and service solutions tailored to your unique needs. Book an appointment today and let\'s build something great together.',
+    heroTitle: 'Elevate Your Business with Smart Solutions',
+    heroSubtitle: 'We provide expert consulting and technical solutions to help your business grow faster and smarter.',
     aboutText: 'At Almaris, we believe in delivering exceptional quality and measurable results. Our team of industry experts works closely with you to understand your challenges and implement strategies that drive growth.\n\nWhether you need strategic consulting, technical implementation, or ongoing support, we have the expertise to help you navigate the complex business landscape.'
   });
   const [isSaving, setIsSaving] = useState(false);
@@ -311,7 +367,7 @@ function ContentEditor() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-slate-900 mb-6">Edit Site Content</h1>
+      <h1 className="text-2xl font-heading font-bold text-slate-900 mb-6">Edit Site Content</h1>
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 max-w-3xl">
         {saved && (
           <div className="mb-6 p-4 bg-green-50 text-green-800 rounded-lg flex items-center">
@@ -321,27 +377,27 @@ function ContentEditor() {
         )}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <h3 className="text-lg font-bold text-slate-900 mb-4 border-b pb-2">Hero Section</h3>
+            <h3 className="text-lg font-heading font-bold text-slate-900 mb-4 border-b pb-2">Hero Section</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Headline</label>
+                <label className="block text-sm font-heading font-medium text-slate-700 mb-2">Headline</label>
                 <input
                   type="text"
                   name="heroTitle"
                   value={formData.heroTitle}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600"
+                  className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-primary-600 focus:border-primary-600"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Subtitle</label>
+                <label className="block text-sm font-heading font-medium text-slate-700 mb-2">Subtitle</label>
                 <textarea
                   name="heroSubtitle"
                   value={formData.heroSubtitle}
                   onChange={handleChange}
                   rows={3}
-                  className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600"
+                  className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-primary-600 focus:border-primary-600"
                   required
                 />
               </div>
@@ -349,15 +405,15 @@ function ContentEditor() {
           </div>
 
           <div className="pt-4">
-            <h3 className="text-lg font-bold text-slate-900 mb-4 border-b pb-2">About Section</h3>
+            <h3 className="text-lg font-heading font-bold text-slate-900 mb-4 border-b pb-2">About Section</h3>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">About Text</label>
+              <label className="block text-sm font-heading font-medium text-slate-700 mb-2">About Text</label>
               <textarea
                 name="aboutText"
                 value={formData.aboutText}
                 onChange={handleChange}
                 rows={6}
-                className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600"
+                className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-primary-600 focus:border-primary-600"
                 required
               />
             </div>
@@ -367,7 +423,7 @@ function ContentEditor() {
             <button
               type="submit"
               disabled={isSaving}
-              className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors disabled:opacity-70"
+              className="px-6 py-3 bg-primary-600 text-white rounded-lg font-heading font-medium hover:bg-primary-700 transition-colors disabled:opacity-70"
             >
               {isSaving ? 'Saving...' : 'Save Changes'}
             </button>
