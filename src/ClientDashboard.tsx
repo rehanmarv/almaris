@@ -90,8 +90,9 @@ function MyBookings({ user }: { user: any }) {
       });
       setAppointments(docs);
       setLoading(false);
-    }, (error) => {
+    }, (error: any) => {
       console.error("Error fetching user appointments:", error);
+      alert(`Error fetching your bookings: ${error.message}`);
       setLoading(false);
     });
     
@@ -132,7 +133,11 @@ function MyBookings({ user }: { user: any }) {
                   {apt.status === 'confirmed' && <CheckCircle className="w-3 h-3 mr-1" />}
                   {apt.status === 'pending' && <Clock className="w-3 h-3 mr-1" />}
                   {apt.status === 'cancelled' && <XCircle className="w-3 h-3 mr-1" />}
-                  <span className="capitalize">{apt.status || 'Pending'}</span>
+                  <span className="font-medium">
+                    {apt.status === 'confirmed' ? 'Accepted' : 
+                     apt.status === 'cancelled' ? 'Rejected' : 
+                     'Pending Admin Approval'}
+                  </span>
                 </span>
                 <span className="text-xs font-medium text-slate-500 dark:text-slate-400 capitalize bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">
                   {apt.service}

@@ -17,7 +17,8 @@ service cloud.firestore {
 
     match /appointments/{appointmentId} {
       allow create: if true;
-      allow read, update, delete: if isAdmin();
+      allow read: if isAdmin() || (isAuthenticated() && request.auth.token.email == resource.data.email);
+      allow update, delete: if isAdmin();
     }
 
     match /messages/{messageId} {

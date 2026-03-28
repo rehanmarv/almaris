@@ -443,12 +443,24 @@ const Pricing = () => {
 };
 
 // --- BOOKING SECTION ---
-const Booking = () => {
+const Booking = ({ user }: { user?: any }) => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    name: '', email: '', date: '', time: '', service: ''
+    name: user?.displayName || '', 
+    email: user?.email || '', 
+    date: '', time: '', service: ''
   });
+
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        name: user.displayName || prev.name,
+        email: user.email || prev.email
+      }));
+    }
+  }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -531,7 +543,8 @@ const Booking = () => {
                       required
                       value={formData.name}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-colors bg-white dark:bg-slate-800 dark:text-white"
+                      readOnly={!!user?.displayName}
+                      className={`w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-colors bg-white dark:bg-slate-800 dark:text-white ${user?.displayName ? 'opacity-70 cursor-not-allowed' : ''}`}
                       placeholder="John Doe"
                     />
                   </div>
@@ -544,7 +557,8 @@ const Booking = () => {
                       required
                       value={formData.email}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-colors bg-white dark:bg-slate-800 dark:text-white"
+                      readOnly={!!user?.email}
+                      className={`w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-primary-600 focus:border-primary-600 transition-colors bg-white dark:bg-slate-800 dark:text-white ${user?.email ? 'opacity-70 cursor-not-allowed' : ''}`}
                       placeholder="john@example.com"
                     />
                   </div>
@@ -824,6 +838,8 @@ export default function PublicSite({ user }: { user?: any }) {
           aboutText: docSnap.data().aboutText || content.aboutText
         });
       }
+    }, (error: any) => {
+      console.error("Error fetching content:", error);
     });
     return () => unsubscribe();
   }, []);
@@ -836,7 +852,7 @@ export default function PublicSite({ user }: { user?: any }) {
         <About text={content.aboutText} />
         <Services />
         <Pricing />
-        <Booking />
+        <Booking user={user} />
         <Contact />
       </main>
       <Footer />

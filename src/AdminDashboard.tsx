@@ -115,8 +115,9 @@ function AppointmentsList() {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setAppointments(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       setLoading(false);
-    }, (error) => {
+    }, (error: any) => {
       console.error("Error fetching appointments:", error);
+      alert(`Error fetching appointments: ${error.message}`);
       setLoading(false);
     });
     return () => unsubscribe();
@@ -125,8 +126,9 @@ function AppointmentsList() {
   const updateStatus = async (id: string, status: string) => {
     try {
       await updateDoc(doc(db, 'appointments', id), { status });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating status:", error);
+      alert(`Error updating status: ${error.message}`);
     }
   };
 
@@ -182,7 +184,7 @@ function AppointmentsList() {
             <CheckCircle className="w-6 h-6" />
           </div>
           <div>
-            <div className="text-sm font-heading font-medium text-slate-500">Approved</div>
+            <div className="text-sm font-heading font-medium text-slate-500">Accepted</div>
             <div className="text-2xl font-heading font-bold text-slate-900">{approvedBookings}</div>
           </div>
         </div>
@@ -191,7 +193,7 @@ function AppointmentsList() {
             <XCircle className="w-6 h-6" />
           </div>
           <div>
-            <div className="text-sm font-heading font-medium text-slate-500">Cancelled</div>
+            <div className="text-sm font-heading font-medium text-slate-500">Rejected</div>
             <div className="text-2xl font-heading font-bold text-slate-900">{cancelledBookings}</div>
           </div>
         </div>
@@ -237,8 +239,8 @@ function AppointmentsList() {
                         'bg-yellow-100 text-yellow-800'}`}
                   >
                     <option value="pending" className="bg-white text-slate-900">Pending</option>
-                    <option value="confirmed" className="bg-white text-slate-900">Approved</option>
-                    <option value="cancelled" className="bg-white text-slate-900">Cancelled</option>
+                    <option value="confirmed" className="bg-white text-slate-900">Accepted</option>
+                    <option value="cancelled" className="bg-white text-slate-900">Rejected</option>
                   </select>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-heading font-medium">
@@ -264,8 +266,9 @@ function MessagesList() {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setMessages(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       setLoading(false);
-    }, (error) => {
+    }, (error: any) => {
       console.error("Error fetching messages:", error);
+      alert(`Error fetching messages: ${error.message}`);
       setLoading(false);
     });
     return () => unsubscribe();
@@ -339,6 +342,9 @@ function ContentEditor() {
           aboutText: docSnap.data().aboutText || formData.aboutText
         });
       }
+    }, (error: any) => {
+      console.error("Error fetching content:", error);
+      alert(`Error fetching content: ${error.message}`);
     });
     return () => unsubscribe();
   }, []);
