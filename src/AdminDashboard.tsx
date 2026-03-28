@@ -19,7 +19,16 @@ export default function AdminDashboard({ user }: { user: any }) {
           <h2 className="text-2xl font-heading font-bold text-slate-900 mb-2">Admin Access</h2>
           <p className="text-slate-600 mb-8">Please sign in to access the dashboard.</p>
           <button 
-            onClick={() => signInWithPopup(auth, googleProvider)}
+            onClick={async () => {
+              try {
+                console.log("Attempting to open admin sign-in popup...");
+                await signInWithPopup(auth, googleProvider);
+                console.log("Admin sign-in successful!");
+              } catch (error: any) {
+                console.error("Error signing in:", error);
+                alert(`Sign in failed: ${error.message}\n\nIf you are using a popup blocker, please allow popups for this site, or open the app in a new tab.`);
+              }
+            }}
             className="w-full py-3 px-4 bg-primary-600 text-white rounded-lg font-heading font-medium hover:bg-primary-700 transition-colors"
           >
             Sign in with Google

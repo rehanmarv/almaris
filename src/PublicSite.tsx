@@ -40,9 +40,12 @@ const Navbar = ({ user }: { user: any }) => {
 
   const handleLogin = async () => {
     try {
+      console.log("Attempting to open sign-in popup...");
       await signInWithPopup(auth, googleProvider);
-    } catch (error) {
+      console.log("Sign-in successful!");
+    } catch (error: any) {
       console.error("Error signing in:", error);
+      alert(`Sign in failed: ${error.message}\n\nIf you are using a popup blocker, please allow popups for this site, or open the app in a new tab.`);
     }
   };
 
